@@ -62,7 +62,7 @@ public class PackedTransaction {
 
     private int eventCount = 0;
     
-    // Per-event metadata, ~59 bytes across all arrays
+    // Per-event metadata, ~59 bytes across all arrays, dynamically resized together as events are appended
     private byte[] type = new byte[8];
     private long[] scnDelta = new long[8]; // scn delta +/- from transaction startScn
     private long[] changeTime = new long[8];
@@ -91,6 +91,7 @@ The second group is the per-event metadata.
 Rather than allocating an object per event, each metadata field has its own array, and the event's id (its position in the transaction, `0` to `eventCount - 1`) is the index into every one of them.
 Reading event `n` means reading `type[n]`, `scnDelta[n]`, and so on.
 Because the id is the insertion position, event order is retained without any additional structure.
+The sizes in the listing are a starting capacity rather than a limit; the arrays are resized together as the transaction fills, which is covered under [Appending events](#appending-events) and [Growth cap](#growth-cap).
 
 Each field is packed into the smallest primitive that represents it losslessly:
 
